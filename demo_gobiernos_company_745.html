@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo de Pago Municipal - Nuevo León</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        :root {
+            --color-primary: #004b93; /* Azul oscuro - Similar al logo de Nuevo León */
+            --color-secondary: #007bff; /* Azul estándar de Bootstrap */
+            --color-light-blue: #e0f2f7; /* Azul muy claro para fondos */
+            --color-text-dark: #2c3e50;
+            --color-text-light: #555;
+            --color-success: #28a745;
+            --color-error: #dc3545;
+            --color-highlight: #ffc107; /* Amarillo para el botón de pagar */
+            --color-highlight-dark: #e0a800; /* Amarillo oscuro para hover */
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--color-light-blue);
+            padding-top: 40px;
+            padding-bottom: 40px;
+            color: var(--color-text-dark);
+            position: relative; /* Necesario para los toasts */
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            max-width: 960px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            position: relative; /* Para posicionar el botón de engrane */
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            max-width: 180px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--color-primary);
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        p.subtitle {
+            color: var(--color-text-light);
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .accordion-item {
+            border: 1px solid #dee2e6;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+             /* Mantener estilos de tipografía base del accordion-header */
+        }
+
+        .accordion-button {
+            background-color: var(--color-primary);
+            color: white;
+            font-weight: bold;
+            font-size: 1.2em;
+            padding: 18px 25px;
+            border-radius: 8px 8px 0 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: var(--color-secondary);
+            color: white;
+            box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .125);
+        }
+
+        .accordion-button:hover {
+            background-color: #0056b3;
+        }
+
+        .accordion-body {
+            padding: 25px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.95em;
+            color: var(--color-text-dark);
+        }
+        .accordion-body p {
+            font-size: 0.95em;
+            color: var(--color-text-light);
+            margin-bottom: 15px;
+        }
+        .accordion-body .form-label {
+            font-size: 0.9em;
+        }
+        .accordion-body .form-control {
+            font-size: 0.95em;
+        }
+
+        .btn-pay {
+            background-color: var(--color-highlight);
+            border-color: var(--color-highlight);
+            color: var(--color-text-dark);
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-pay:hover {
+            background-color: var(--color-highlight-dark);
+            border-color: var(--color-highlight-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            color: var(--color-text-dark);
+        }
+        .btn-pay:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            background-color: var(--color-success);
+            color: white;
+            border-radius: 8px 8px 0 0;
+            border-bottom: none;
+        }
+
+        .modal-footer .btn-success {
+            background-color: var(--color-success);
+            border-color: var(--color-success);
+        }
+        .modal-footer .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+        
+        /* Botón de engrane */
+        .settings-dropdown {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+        .btn-gear {
+            background: none;
+            border: none;
+            color: var(--color-text-light);
+            font-size: 1.8em;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .btn-gear:hover {
+            color: var(--color-primary);
+        }
+
+        /* Contenedor para los toasts */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1090; /* Mayor que el modal (z-index 1055) */
+        }
+        /* Ajuste de estilos para el toast basado en la nueva estructura */
+        .toast.error-toast .toast-header {
+            background-color: var(--color-error);
+            color: white;
+            font-weight: bold;
+        }
+        .toast.success-toast .toast-header {
+            background-color: var(--color-success);
+            color: white;
+            font-weight: bold;
+        }
+        .toast-body {
+            color: var(--color-text-dark); /* Color de texto predeterminado para el cuerpo del toast */
+        }
+        .toast.error-toast .toast-body {
+            background-color: #f8d7da; /* Fondo suave para error */
+            color: var(--color-error); /* Texto rojo para error */
+        }
+        .toast.success-toast .toast-body {
+            background-color: #d4edda; /* Fondo suave para éxito */
+            color: var(--color-success); /* Texto verde para éxito */
+        }
+        .toast .btn-close-white {
+            filter: invert(1); /* Para que el icono de cerrar sea blanco en fondos oscuros */
+        }
+
+        .loading-icon {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="settings-dropdown dropdown">
+            <button class="btn btn-gear" type="button" id="dropdownSettings" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-cog"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownSettings">
+                <li><a class="dropdown-item" href="#" id="resetConfigButton">Restablecer Configuración</a></li>
+            </ul>
+        </div>
+
+        <div class="header-section">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Coat_of_arms_of_Nuevo_Leon.svg/250px-Coat_of_arms_of_Nuevo_Leon.svg.png" alt="Logo Gobierno de Nuevo León" class="logo"> 
+            <h1>Portal de Pagos Municipales</h1>
+            <p class="subtitle">Realiza tus trámites de pago de manera ágil y segura. Selecciona la opción que necesitas para comenzar.</p>
+        </div>
+
+        <div class="accordion" id="paymentAccordion">
+
+            <div class="accordion-item">
+                <p class="h4 accordion-header" id="headingPredial">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePredial" aria-expanded="true" aria-controls="collapsePredial">
+                        🏠 Pago de Impuesto Predial
+                    </button>
+                </p>
+                <div id="collapsePredial" class="accordion-collapse collapse show" aria-labelledby="headingPredial" data-bs-parent="#paymentAccordion">
+                    <div class="accordion-body">
+                        <p>El pago de tu impuesto predial contribuye directamente al desarrollo y mantenimiento de los servicios públicos de tu comunidad. Mantente al día y evita recargos.</p>
+                        <form id="form-prediales">
+                            <div class="mb-3">
+                                <label for="param_1802_prediales" class="form-label">Número de Cuenta Predial:</label>
+                                <input type="text" class="form-control" id="param_1802_prediales" name="param_1802" placeholder="Ej: 1234567890" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="param_1803_prediales" class="form-label">Referencia Adicional (opcional):</label>
+                                <input type="text" class="form-control" id="param_1803_prediales" name="param_1803" placeholder="Ej: Recibo 2024">
+                            </div>
+                            <div class="mb-3">
+                                <label for="param_1798_prediales" class="form-label">Monto a Pagar ($):</label>
+                                <input type="number" step="5" class="form-control" id="param_1798_prediales" name="param_1798" placeholder="Ej: 500.75" required>
+                            </div>
+                            <button type="button" class="btn btn-pay w-100" onclick="procesarPago('prediales')">
+                                Realizar Pago de Predial <i class="fas fa-spinner fa-spin loading-icon" style="display:none;"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <p class="h4 accordion-header" id="headingAlcoholes">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAlcoholes" aria-expanded="false" aria-controls="collapseAlcoholes">
+                        🍺 Pago de Licencias de Alcoholes
+                    </button>
+                </p>
+                <div id="collapseAlcoholes" class="accordion-collapse collapse" aria-labelledby="headingAlcoholes" data-bs-parent="#paymentAccordion">
+                    <div class="accordion-body">
+                        <p>Regulariza o renueva tu licencia de alcoholes de forma sencilla. Cumplir con la normativa es fundamental para el correcto funcionamiento de tu negocio.</p>
+                        <form id="form-alcoholes">
+                            <div class="mb-3">
+                                <label for="param_1804_alcoholes" class="form-label">Número de Licencia:</label>
+                                <input type="text" class="form-control" id="param_1804_alcoholes" name="param_1804" placeholder="Ej: ALC-12345" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="param_1805_alcoholes" class="form-label">RFC del Contribuyente:</label>
+                                <input type="text" class="form-control" id="param_1805_alcoholes" name="param_1805" placeholder="Ej: XAXX010101000" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="param_1799_alcoholes" class="form-label">Monto a Pagar ($):</label>
+                                <input type="number" step="5" class="form-control" id="param_1799_alcoholes" name="param_1799" placeholder="Ej: 1500.00" required>
+                            </div>
+                            <button type="button" class="btn btn-pay w-100" onclick="procesarPago('alcoholes')">
+                                Realizar Pago de Alcoholes <i class="fas fa-spinner fa-spin loading-icon" style="display:none;"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <p class="h4 accordion-header" id="headingAvaluos">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAvaluos" aria-expanded="false" aria-controls="collapseAvaluos">
+                        📋 Pago de Avalúos
+                    </button>
+                </p>
+                <div id="collapseAvaluos" class="accordion-collapse collapse" aria-labelledby="headingAvaluos" data-bs-parent="#paymentAccordion">
+                    <div class="accordion-body">
+                        <p>Cubre los costos asociados a tus trámites de avalúo. Este proceso es clave para la determinación del valor fiscal de tus propiedades.</p>
+                        <form id="form-avaluos">
+                            <div class="mb-3">
+                                <label for="param_1806_avaluos" class="form-label">Número de Expediente de Avalúo:</label>
+                                <input type="text" class="form-control" id="param_1806_avaluos" name="param_1806" placeholder="Ej: EXP-2024-001" required>
+                            </div>
+                             <div class="mb-3">
+                                <label for="param_1807_avaluos" class="form-label">Clave Catastral Asociada:</label>
+                                <input type="text" class="form-control" id="param_1807_avaluos" name="param_1807" placeholder="Ej: 01-001-001" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="param_1800_avaluos" class="form-label">Monto a Pagar ($):</label>
+                                <input type="number" step="5" class="form-control" id="param_1800_avaluos" name="param_1800" placeholder="Ej: 350.00" required>
+                            </div>
+                            <button type="button" class="btn btn-pay w-100" onclick="procesarPago('avaluos')">
+                                Realizar Pago de Avalúos <i class="fas fa-spinner fa-spin loading-icon" style="display:none;"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <p class="h4 accordion-header" id="headingCatastro">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCatastro" aria-expanded="false" aria-controls="collapseCatastro">
+                        🗺️ Pago de Trámites Catastrales
+                    </button>
+                </p>
+                <div id="collapseCatastro" class="accordion-collapse collapse" aria-labelledby="headingCatastro" data-bs-parent="#paymentAccordion">
+                    <div class="accordion-body">
+                        <p>Liquida los cargos por servicios y trámites relacionados con el registro y la actualización de propiedades en el catastro.</p>
+                        <form id="form-catastro">
+                            <div class="mb-3">
+                                <label for="param_1808_catastro" class="form-label">Número de Trámite Catastral:</label>
+                                <input type="text" class="form-control" id="param_1808_catastro" name="param_1808" placeholder="Ej: TRA-CAT-ABC" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="param_1809_catastro" class="form-label">Descripción del Servicio:</label>
+                                <input type="text" class="form-control" id="param_1809_catastro" name="param_1809" placeholder="Ej: Expedición de planos">
+                            </div>
+                            <div class="mb-3">
+                                <label for="param_1801_catastro" class="form-label">Monto a Pagar ($):</label>
+                                <input type="number" step="5" class="form-control" id="param_1801_catastro" name="param_1801" placeholder="Ej: 200.00" required>
+                            </div>
+                            <button type="button" class="btn btn-pay w-100" onclick="procesarPago('catastro')">
+                                Realizar Pago de Catastro <i class="fas fa-spinner fa-spin loading-icon" style="display:none;"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div> </div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="generalErrorToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastHeaderTitle">Mensaje</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastBodyMessage">
+                </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentModalLabel">✅ ¡Pago Procesado! (Demo)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="lead">Tu solicitud de pago fue procesada con éxito. Por favor, haz clic en el botón de abajo para finalizar tu transacción.</p>
+                    <a id="paymentLinkButton" href="#" target="_blank" class="btn btn-success btn-lg mt-3">Ir al Proceso de Pago</a>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Configuración inicial por defecto de las APIs por comercio
+        const default_comercios_api_config = {
+            'prediales': {
+                "business_key": "c2c9b8518cc2e13de762b75e409610a2",
+                "username": "Prediales",
+                "password": "Prediales1467",
+                "Api-Key-GT": "aa49907a148628ce68a49fdc91ba044c7b28f8ae",
+                "Authorization": "MzRhNTk1YjA1NzdmOTg5NmEwZDcyYWJiZDM1NjIyNzMyNjMwZDk2ZA==",
+            },
+            'alcoholes': {
+                "business_key": "b1da1b4e2f34e952208c87ae0ac6792c",
+                "username": "Alcoholes",
+                "password": "Alcoholes1468",
+                "Api-Key-GT": "f184dac0144492ce3bd43290ece5b7864ee0350c",
+                "Authorization": "M2JmYWE5NzgyODQ2YzhhN2U0MmY3NmVkMDMzMjM4ODY5ZWE3MGY0Yg=="
+            },
+            'avaluos': {
+                "business_key": "4564da27151a308e9372eb02a12cf5cc",
+                "username": "Avaluos",
+                "password": "Avaluos1469",
+                "Api-Key-GT": "de2e06ce9cc9978a6db47bdd4afa8a1e23793c18",
+                "Authorization": "ZWVmNGY4MTk3ZTlkZTE1OTU4ZDRmMTFhYzJiZWQwZGUyM2U5YTEzNA=="
+            },
+            'catastro': {
+                "business_key": "41e59c007a405c7a9e0376ca3b65e27f",
+                "username": "Catastro",
+                "password": "Catastro1470",
+                "Api-Key-GT": "bd790e4ac01684721abad31fbc82c9505d4c3d8b",
+                "Authorization": "NjhkMWUzZDMzMWZkYjA1ZmVhN2VjZTZiYTA4NTllZGJkOTVkNDI1OA=="
+            },
+        };
+
+        let comercios_api_config = {}; // Variable para almacenar la configuración activa
+
+        // Clave para guardar en sessionStorage
+        const SESSION_STORAGE_KEY = 'comercios_api_config';
+
+        // URL para procesar pagos
+        const PAYMENT_API_URL = "https://des.epagos.mx/ProcessPayment.php?process=Webservice&version=1.2";
+        // URL para generar tokens
+        const TOKEN_API_URL = "https://des.epagos.mx/ProcessPayment.php?process=Webservice&read_action=1";
+
+        /**
+         * Muestra un mensaje de error o éxito usando un Toast de Bootstrap.
+         * @param {string} message - El mensaje a mostrar.
+         * @param {string} type - 'error' para rojo, 'success' para verde.
+         * @param {string} [title='Mensaje'] - Título opcional para el toast.
+         */
+        function showToast(message, type, title = 'Mensaje') {
+            const toastElement = document.getElementById('generalErrorToast');
+            const toastBody = document.getElementById('toastBodyMessage');
+            const toastHeaderTitle = document.getElementById('toastHeaderTitle');
+
+            // Asegurarse de que los elementos existan antes de intentar manipularlos
+            if (!toastElement || !toastBody || !toastHeaderTitle) {
+                console.error("No se encontraron los elementos Toast necesarios en el DOM.");
+                return;
+            }
+
+            toastBody.textContent = message;
+            toastHeaderTitle.textContent = title;
+
+            // Reiniciar clases de color
+            toastElement.classList.remove('error-toast', 'success-toast');
+            toastElement.classList.remove('bg-danger', 'text-bg-success'); // Clases antiguas
+
+            if (type === 'error') {
+                toastElement.classList.add('error-toast');
+                toastElement.classList.add('text-white'); // Asegurar texto blanco en el header del toast
+            } else if (type === 'success') {
+                toastElement.classList.add('success-toast');
+                toastElement.classList.add('text-white'); // Asegurar texto blanco en el header del toast
+            }
+
+            const toast = new bootstrap.Toast(toastElement, {
+                autohide: true,
+                delay: 5000 // Ocultar después de 5 segundos
+            });
+            toast.show();
+        }
+
+        /**
+         * Carga la configuración de la API desde sessionStorage, o usa la predeterminada si no existe.
+         * Luego, guarda la configuración en sessionStorage.
+         */
+        function loadConfigFromSessionStorage() {
+            const storedConfig = sessionStorage.getItem(SESSION_STORAGE_KEY);
+            if (storedConfig) {
+                try {
+                    comercios_api_config = JSON.parse(storedConfig);
+                    console.log("Configuración cargada desde sessionStorage.");
+                    showToast('Configuración cargada exitosamente.', 'success', 'Carga Exitosa');
+                } catch (e) {
+                    console.error("Error al parsear la configuración de sessionStorage, usando la predeterminada.", e);
+                    // Asegúrate de hacer una copia profunda de default_comercios_api_config
+                    comercios_api_config = JSON.parse(JSON.stringify(default_comercios_api_config));
+                    saveConfigToSessionStorage(); // Guarda la predeterminada si hubo error
+                    showToast('Error al cargar configuración. Usando valores predeterminados.', 'error', 'Error de Configuración');
+                }
+            } else {
+                // Asegúrate de hacer una copia profunda de default_comercios_api_config
+                comercios_api_config = JSON.parse(JSON.stringify(default_comercios_api_config));
+                saveConfigToSessionStorage(); // Guarda la predeterminada la primera vez
+                showToast('Configuración inicial establecida.', 'success', 'Configuración Inicial');
+            }
+        }
+
+        /**
+         * Guarda la configuración actual de la API en sessionStorage.
+         */
+        function saveConfigToSessionStorage() {
+            sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(comercios_api_config));
+            console.log("Configuración guardada en sessionStorage.");
+        }
+
+        /**
+         * Función para generar un nuevo token de acceso.
+         * @param {string} comercioKey - La clave del comercio (ej: 'prediales').
+         * @returns {Promise<string|null>} - Una promesa que resuelve con el nuevo token de autorización o null si falla.
+         */
+        async function generarNuevoToken(comercioKey) {
+            const config = comercios_api_config[comercioKey];
+            if (!config) {
+                console.error("Configuración de comercio no encontrada para:", comercioKey);
+                showToast(`Error: Configuración para "${comercioKey}" no encontrada.`, 'error', 'Error de Token');
+                return null;
+            }
+
+            const tokenSettings = {
+                "url": TOKEN_API_URL,
+                "method": "POST",
+                "timeout": 0,
+                "headers": {
+                    "Api-Key-GT": config["Api-Key-GT"],
+                    "Content-Type": "application/json",
+                },
+                "data": JSON.stringify({
+                    "request": {
+                        "action": "get_token",
+                        "business_key": config.business_key,
+                        "username": config.username,
+                        "password": config.password,
+                        "type": "access",
+                    }
+                }),
+            };
+
+            try {
+                const response = await $.ajax(tokenSettings);
+                if (response.response && response.response.type === "Bearer" && response.response.token) {
+                    console.log(`Nuevo token generado para ${comercioKey}.`);
+                    comercios_api_config[comercioKey].Authorization = response.response.token;
+                    saveConfigToSessionStorage();
+                    showToast(`Nuevo token generado y guardado para ${comercioKey}.`, 'success', 'Token Generado');
+                    return response.response.token;
+                } else {
+                    console.error("Error al generar token:", response);
+                    showToast(`Error al generar token para ${comercioKey}: ${response.response ? response.response.error_description : 'desconocido'}.`, 'error', 'Error de Token');
+                    return null;
+                }
+            } catch (error) {
+                console.error("Error de red o servidor al generar token:", error);
+                showToast(`Error de conexión al generar token para ${comercioKey}.`, 'error', 'Error de Red');
+                return null;
+            }
+        }
+
+        /**
+         * Función principal para procesar el pago.
+         * @param {string} comercioKey - La clave del comercio (ej: 'prediales').
+         */
+        async function procesarPago(comercioKey) {
+            const $button = $(`#form-${comercioKey} .btn-pay`);
+            const $loadingIcon = $button.find('.loading-icon');
+
+            $button.prop('disabled', true);
+            $loadingIcon.show();
+            showToast('Procesando su pago, por favor espere...', 'success', 'Procesando Pago');
+
+            const config = comercios_api_config[comercioKey];
+            if (!config) {
+                showToast('Error: Configuración de comercio no encontrada. Intente restablecer.', 'error', 'Error de Configuración');
+                $button.prop('disabled', false);
+                $loadingIcon.hide();
+                return;
+            }
+
+            const formData = {};
+            const formId = `#form-${comercioKey}`;
+            let allFieldsFilled = true;
+
+            $(formId).find('input[name^="param_"]').each(function() {
+                const $input = $(this);
+                const paramName = $input.attr('name');
+                formData[paramName] = $input.val();
+
+                if ($input.prop('required') && (formData[paramName] === '' || formData[paramName] === null)) {
+                    allFieldsFilled = false;
+                }
+            });
+
+            if (!allFieldsFilled) {
+                showToast('Por favor, completa todos los campos requeridos para continuar.', 'error', 'Campos Incompletos');
+                $button.prop('disabled', false);
+                $loadingIcon.hide();
+                return;
+            }
+
+            const requestData = {
+                "request": {
+                    "action": "create_link",
+                    ...formData
+                }
+            };
+
+            await realizarPeticionPago(comercioKey, config.Authorization, requestData);
+
+            $button.prop('disabled', false);
+            $loadingIcon.hide();
+        }
+
+        /**
+         * Función auxiliar para realizar la petición AJAX de pago.
+         * @param {string} comercioKey - La clave del comercio.
+         * @param {string} authorizationToken - El token de autorización a usar.
+         * @param {object} requestData - Los datos a enviar en la petición.
+         */
+        async function realizarPeticionPago(comercioKey, authorizationToken, requestData) {
+            const config = comercios_api_config[comercioKey];
+            const paymentSettings = {
+                "url": PAYMENT_API_URL,
+                "method": "POST",
+                "timeout": 0,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Api-Key-GT": config["Api-Key-GT"],
+                    "Authorization": "Bearer " + authorizationToken
+                },
+                "data": JSON.stringify(requestData),
+            };
+
+            try {
+                const response = await $.ajax(paymentSettings);
+                console.log("Respuesta de pago:", response);
+
+                if (response.response && response.response.status === "success") {
+                    const paymentLink = response.response.link;
+                    $('#paymentLinkButton').attr('href', paymentLink);
+                    const myModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+                    myModal.show();
+                    showToast('¡Pago procesado con éxito! Revisa el modal.', 'success', 'Pago Exitoso');
+                } else if (response.response && response.response.status === "error" && response.response.error_code === 402) {
+                    console.warn("Token vencido. Intentando generar nuevo token...");
+                    showToast('Token de sesión vencido. Intentando renovar...', 'error', 'Token Vencido');
+                    const nuevoToken = await generarNuevoToken(comercioKey);
+                    if (nuevoToken) {
+                        console.log("Reintentando petición de pago con nuevo token...");
+                        showToast('Token renovado. Reintentando pago...', 'success', 'Reintento de Pago');
+                        await realizarPeticionPago(comercioKey, nuevoToken, requestData);
+                    } else {
+                        showToast('No se pudo procesar el pago. El token no pudo ser renovado.', 'error', 'Fallo de Renovación');
+                    }
+                } else {
+                    showToast('Error en la API de pagos: ' + (response.response ? response.response.error_description : 'Error desconocido') + '.', 'error', 'Error API');
+                }
+            } catch (error) {
+                console.error("Error de red o servidor al procesar pago:", error);
+                showToast('Error de conexión al procesar el pago. Verifica tu conexión.', 'error', 'Error de Red');
+            }
+        }
+
+        // Lógica para el botón de restablecer configuración
+        $(function() {
+            loadConfigFromSessionStorage(); // Cargar la configuración al cargar la página
+
+            $('#resetConfigButton').on('click', function(e) {
+                e.preventDefault(); // Evitar el comportamiento predeterminado del enlace
+                sessionStorage.removeItem(SESSION_STORAGE_KEY); // Eliminar la configuración de sessionStorage
+                loadConfigFromSessionStorage(); // Volver a cargar para establecer los valores por defecto
+                showToast('Configuración restablecida a valores por defecto.', 'success', 'Configuración Restablecida');
+            });
+        });
+    </script>
+</body>
+</html>
