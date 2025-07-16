@@ -272,6 +272,11 @@
                             </div>
                             <div id="dynamic-fields-prediales"></div>
                             
+                            <div class="mb-3">
+                                <label for="send_email_prediales" class="form-label">Enviar enlace de pago a (opcional):</label>
+                                <input type="email" class="form-control" id="send_email_prediales" name="send_email" placeholder="ejemplo@correo.com">
+                            </div>
+
                             <button type="button" class="btn btn-pay w-100 mt-3" onclick="procesarPago('prediales')">
                                 Realizar Pago de Predial <i class="fas fa-spinner fa-spin loading-icon" style="display:none;"></i>
                             </button>
@@ -294,6 +299,11 @@
                                 <i class="fas fa-spinner fa-spin"></i> Cargando campos...
                             </div>
                             <div id="dynamic-fields-alcoholes"></div>
+
+                            <div class="mb-3">
+                                <label for="send_email_alcoholes" class="form-label">Enviar enlace de pago a (opcional):</label>
+                                <input type="email" class="form-control" id="send_email_alcoholes" name="send_email" placeholder="ejemplo@correo.com">
+                            </div>
 
                             <button type="button" class="btn btn-pay w-100 mt-3" onclick="procesarPago('alcoholes')">
                                 Realizar Pago de Alcoholes <i class="fas fa-spinner fa-spin loading-icon" style="display:none;"></i>
@@ -318,6 +328,11 @@
                             </div>
                             <div id="dynamic-fields-avaluos"></div>
 
+                            <div class="mb-3">
+                                <label for="send_email_avaluos" class="form-label">Enviar enlace de pago a (opcional):</label>
+                                <input type="email" class="form-control" id="send_email_avaluos" name="send_email" placeholder="ejemplo@correo.com">
+                            </div>
+
                             <button type="button" class="btn btn-pay w-100 mt-3" onclick="procesarPago('avaluos')">
                                 Realizar Pago de Avalúos <i class="fas fa-spinner fa-spin loading-icon" style="display:none;"></i>
                             </button>
@@ -340,6 +355,11 @@
                                 <i class="fas fa-spinner fa-spin"></i> Cargando campos...
                             </div>
                             <div id="dynamic-fields-catastro"></div>
+
+                            <div class="mb-3">
+                                <label for="send_email_catastro" class="form-label">Enviar enlace de pago a (opcional):</label>
+                                <input type="email" class="form-control" id="send_email_catastro" name="send_email" placeholder="ejemplo@correo.com">
+                            </div>
 
                             <button type="button" class="btn btn-pay w-100 mt-3" onclick="procesarPago('catastro')">
                                 Realizar Pago de Catastro <i class="fas fa-spinner fa-spin loading-icon" style="display:none;"></i>
@@ -693,6 +713,7 @@
             const formId = `#form-${comercioKey}`;
             let allFieldsFilled = true;
 
+            // Recolectar datos de los inputs generados dinámicamente
             $(formId).find('#dynamic-fields-' + comercioKey).find('input[name^="param_"]').each(function() {
                 const $input = $(this);
                 const paramName = $input.attr('name');
@@ -702,6 +723,12 @@
                     allFieldsFilled = false;
                 }
             });
+
+            // Recolectar el valor del campo send_email
+            const sendEmailInput = $(formId).find('input[name="send_email"]');
+            if (sendEmailInput.length > 0 && sendEmailInput.val() !== '') {
+                formData['send_email'] = sendEmailInput.val();
+            }
 
             if (!allFieldsFilled) {
                 showToast('Por favor, completa todos los campos requeridos para continuar.', 'error', 'Campos Incompletos');
